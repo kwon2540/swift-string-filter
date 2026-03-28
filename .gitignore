@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Swift Package Manager build artifacts
+/.build
+/Packages
+
+# Xcode user state
+xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# SwiftPM files generated when opening the package in Xcode
+/.swiftpm/configuration/registries.json
+/.swiftpm/xcode/package.xcworkspace/
+
+# Local credentials
+.netrc
