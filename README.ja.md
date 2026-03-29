@@ -156,9 +156,7 @@ struct UserProfile {
 ```swift
 @StringFilter(maxLength: 8)
 var code: String = ""
-```
 
-```swift
 code = "ABCDEFGHIJK"
 // "ABCDEFGH"
 ```
@@ -185,9 +183,7 @@ public enum StringFilterWidth {
 ```swift
 @StringFilter(width: .toHalfWidth)
 var value: String = ""
-```
 
-```swift
 value = "ＡＢＣ１２３"
 // "ABC123"
 ```
@@ -287,9 +283,7 @@ token = "AZ-12_!"
     including: CharacterSet(charactersIn: "_-")
 )
 var username: String = ""
-```
 
-```swift
 username = "ab_cd-12!"
 // "ab_cd-12"
 ```
@@ -301,9 +295,7 @@ username = "ab_cd-12!"
 ```swift
 @StringFilter(excluding: .whitespacesAndNewlines)
 var compactValue: String = ""
-```
 
-```swift
 compactValue = "A B\nC"
 // "ABC"
 ```

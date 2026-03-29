@@ -157,9 +157,7 @@ Truncates the string when it exceeds the specified character count.
 ```swift
 @StringFilter(maxLength: 8)
 var code: String = ""
-```
 
-```swift
 code = "ABCDEFGHIJK"
 // "ABCDEFGH"
 ```
@@ -186,9 +184,7 @@ Example:
 ```swift
 @StringFilter(width: .toHalfWidth)
 var value: String = ""
-```
 
-```swift
 value = "ＡＢＣ１２３"
 // "ABC123"
 ```
@@ -288,9 +284,7 @@ If you need a standalone allowlist, prefer `content: .custom(...)`.
     including: CharacterSet(charactersIn: "_-")
 )
 var username: String = ""
-```
 
-```swift
 username = "ab_cd-12!"
 // "ab_cd-12"
 ```
@@ -302,9 +296,7 @@ Removes characters from the final result.
 ```swift
 @StringFilter(excluding: .whitespacesAndNewlines)
 var compactValue: String = ""
-```
 
-```swift
 compactValue = "A B\nC"
 // "ABC"
 ```
