@@ -1,11 +1,8 @@
 # Swift String Filter
 
-A library for filtering and normalizing `String` values in a declarative manner.
+[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
-> Status
->
-> This project is in initial development.
-> The README describes the intended v0.1 API and behavior, and details may change before the first release.
+A library for filtering and normalizing `String` values in a declarative manner.
 
 ## Overview
 
@@ -14,7 +11,7 @@ A library for filtering and normalizing `String` values in a declarative manner.
 Unlike validation libraries, this package does not report failures or throw errors when input violates a rule.
 Instead, it transforms the assigned value into a normalized form that matches the declared policy.
 
-This makes it useful for domain models and state-driven architectures such as The Composable Architecture (TCA), where input mutation should remain explicit, deterministic, and easy to reason about.
+This makes it useful in domain models and other state-driven systems where input normalization should remain explicit, deterministic, and easy to reason about.
 
 With `@StringFilter`, you can attach filtering rules directly to `String` properties:
 
@@ -77,10 +74,6 @@ Those concerns belong in a validation layer.
 
 ## Installation
 
-The package is not released yet.
-
-Once `v0.1.0` is published, add the dependency to your `Package.swift`:
-
 ```swift
 dependencies: [
     .package(url: "https://github.com/kwon2540/swift-string-filter", from: "0.1.0")
@@ -119,9 +112,23 @@ This behaves conceptually like:
 
 ```swift
 struct UserProfile {
-    private var _nickname: String = ""
+    private var _nickname: String
 
     var nickname: String {
+        @storageRestrictions(initializes: _nickname)
+        init(initialValue) {
+            _nickname = StringFiltering.apply(
+                initialValue,
+                options: .init(
+                    maxLength: 10,
+                    width: .toHalfWidth,
+                    letterCase: .preserve,
+                    content: .unrestricted,
+                    including: nil,
+                    excluding: nil
+                )
+            )
+        }
         get { _nickname }
         set {
             _nickname = StringFiltering.apply(
@@ -242,12 +249,41 @@ Examples:
 ```swift
 @StringFilter(content: .decimalDigits)
 var otp: String = ""
+```
 
+```swift
+otp = "12a34"
+// "1234"
+```
+
+```swift
 @StringFilter(content: .asciiLetters)
 var initials: String = ""
+```
 
+```swift
+initials = "A1b-"
+// "Ab"
+```
+
+```swift
 @StringFilter(content: .asciiAlphanumerics)
 var username: String = ""
+```
+
+```swift
+username = "ab-12_!"
+// "ab12"
+```
+
+```swift
+@StringFilter(content: .custom(CharacterSet(charactersIn: "ABC123-_")))
+var token: String = ""
+```
+
+```swift
+token = "AZ-12_!"
+// "A-12_"
 ```
 
 ### `including`
@@ -313,6 +349,12 @@ struct Account {
 }
 ```
 
+```swift
+var account = Account()
+account.username = "ａｂ_cd-12!"
+// "ab_cd-12"
+```
+
 ### Invite Code
 
 ```swift
@@ -325,6 +367,12 @@ struct Invite {
     )
     var code: String = ""
 }
+```
+
+```swift
+var invite = Invite()
+invite.code = "ab12cd!!"
+// "AB12CD"
 ```
 
 ### Numeric Input
@@ -340,6 +388,12 @@ struct Verification {
 }
 ```
 
+```swift
+var verification = Verification()
+verification.otp = "１２3a45"
+// "12345"
+```
+
 ### Free-Form Nickname
 
 ```swift
@@ -350,6 +404,12 @@ struct Profile {
     )
     var nickname: String = ""
 }
+```
+
+```swift
+var profile = Profile()
+profile.nickname = "Jun\nHyeok"
+// "JunHyeok"
 ```
 
 ## Best Practices
@@ -376,20 +436,13 @@ Less suitable use cases include:
 - Format validation with user-facing errors
 - Business rules that should fail instead of mutate
 
-## Macro Expansion Model
-
-`@StringFilter` uses:
-
-- `@attached(peer)` to generate a backing storage property
-- `@attached(accessor)` to synthesize `get` and `set`
-
-This allows the original property to keep a clean call site while ensuring all writes pass through the declared filtering pipeline.
-
 ## Limitations
 
-- `@StringFilter` currently targets stored `String` properties with default values
-- The macro is intended for mutation, not validation
-- Filtering behavior is based on `CharacterSet` and Foundation string transforms
+- `@StringFilter` currently targets stored `var` properties of type `String`
+- The property must have an explicit `String` type annotation and a default value
+- Optional `String` properties are not supported
+- Computed properties, property observers, and `lazy` properties are not supported
+- `including` only extends a restricted `content` preset; use `content: .custom(...)` for a standalone allowlist
 - Width conversion depends on available Foundation transforms
 
 ## Comparison to Validation Libraries
@@ -407,6 +460,15 @@ Validation libraries answer:
 - What is the stable stored representation of this input?
 
 These two approaches complement each other and can be used together in the same model.
+
+## Macro Expansion Model
+
+`@StringFilter` uses:
+
+- `@attached(peer)` to generate a private backing storage property
+- `@attached(accessor)` to synthesize `init`, `get`, and `set`
+
+This allows the original property to keep a clean call site while ensuring both the default value and later assignments pass through the declared filtering pipeline.
 
 ## License
 
