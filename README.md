@@ -46,13 +46,14 @@ struct SignUpState {
 
 The macro approach automatically:
 
-- Creates a backing storage property for the original value
-- Replaces the original stored property with a computed property
-- Filters and normalizes the assigned value inside the setter
+- Creates a backing storage property for the original value.
+- Replaces the original stored property with a computed property.
+- Filters and normalizes assigned values inside the setter.
 
 ## Design Goals
 
-This library focuses on silent mutation, not validation.
+This library is not mainly about deciding whether input is valid.
+It is about quietly reshaping a value into a stable form before it is stored.
 
 Use this package when you want to:
 
@@ -64,13 +65,13 @@ Use this package when you want to:
 
 Do not use this package when you want to:
 
-- Show validation errors
+- Show user-facing validation errors
 - Reject invalid input
 - Enforce semantic rules such as password policies
 - Require a minimum length
 - Distinguish valid versus invalid submission state
 
-Those concerns belong in a validation layer.
+Those concerns are usually better handled in a separate validation layer.
 
 ## Installation
 
@@ -108,7 +109,7 @@ struct UserProfile {
 }
 ```
 
-This behaves conceptually like:
+Conceptually, it works like this:
 
 ```swift
 struct UserProfile {
@@ -214,9 +215,7 @@ Example:
 ```swift
 @StringFilter(letterCase: .uppercased)
 var inviteCode: String = ""
-```
 
-```swift
 inviteCode = "ab12cd"
 // "AB12CD"
 ```
@@ -249,9 +248,7 @@ Examples:
 ```swift
 @StringFilter(content: .decimalDigits)
 var otp: String = ""
-```
 
-```swift
 otp = "12a34"
 // "1234"
 ```
@@ -259,9 +256,7 @@ otp = "12a34"
 ```swift
 @StringFilter(content: .asciiLetters)
 var initials: String = ""
-```
 
-```swift
 initials = "A1b-"
 // "Ab"
 ```
@@ -269,9 +264,7 @@ initials = "A1b-"
 ```swift
 @StringFilter(content: .asciiAlphanumerics)
 var username: String = ""
-```
 
-```swift
 username = "ab-12_!"
 // "ab12"
 ```
@@ -279,9 +272,7 @@ username = "ab-12_!"
 ```swift
 @StringFilter(content: .custom(CharacterSet(charactersIn: "ABC123-_")))
 var token: String = ""
-```
 
-```swift
 token = "AZ-12_!"
 // "A-12_"
 ```
@@ -347,9 +338,7 @@ struct Account {
     )
     var username: String = ""
 }
-```
 
-```swift
 var account = Account()
 account.username = "ａｂ_cd-12!"
 // "ab_cd-12"
@@ -367,9 +356,7 @@ struct Invite {
     )
     var code: String = ""
 }
-```
 
-```swift
 var invite = Invite()
 invite.code = "ab12cd!!"
 // "AB12CD"
@@ -386,9 +373,7 @@ struct Verification {
     )
     var otp: String = ""
 }
-```
 
-```swift
 var verification = Verification()
 verification.otp = "１２3a45"
 // "12345"
@@ -404,9 +389,7 @@ struct Profile {
     )
     var nickname: String = ""
 }
-```
 
-```swift
 var profile = Profile()
 profile.nickname = "Jun\nHyeok"
 // "JunHyeok"
@@ -423,7 +406,7 @@ profile.nickname = "Jun\nHyeok"
 
 Good candidates include:
 
-- Width normalization
+- Full-width/half-width normalization
 - Case normalization
 - Character filtering for IDs or codes
 - Removing whitespace or newlines

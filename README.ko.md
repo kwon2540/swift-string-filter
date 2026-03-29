@@ -46,13 +46,13 @@ struct SignUpState {
 
 매크로는 자동으로 다음을 수행합니다.
 
-- 원본 값을 저장할 backing storage 프로퍼티를 생성합니다
-- 원래 저장 프로퍼티를 계산 프로퍼티로 바꿉니다
-- setter 내부에서 할당 값을 필터링하고 정규화합니다
+- 원본 값을 저장할 backing storage 프로퍼티를 생성합니다.
+- 기존 저장 프로퍼티를 계산 프로퍼티로 바꿉니다.
+- setter 내부에서 할당 값을 필터링하고 정규화합니다.
 
 ## 설계 목표
 
-이 라이브러리는 검증이 아니라 조용한 변환에 초점을 둡니다.
+이 라이브러리는 입력값의 유효성을 판정하기보다, 값을 조용히 정리해 저장하기 쉬운 형태로 바꾸는 데 초점을 둡니다.
 
 다음과 같은 경우에 적합합니다.
 
@@ -64,13 +64,13 @@ struct SignUpState {
 
 다음과 같은 경우에는 적합하지 않습니다.
 
-- 검증 에러를 보여줘야 할 때
+- 유효성 검사 오류를 사용자에게 보여줘야 할 때
 - 잘못된 입력을 거부해야 할 때
 - 비밀번호 정책 같은 의미적 규칙을 강제해야 할 때
 - 최소 길이를 요구해야 할 때
 - 제출 가능한 상태와 불가능한 상태를 구분해야 할 때
 
-이런 문제는 검증 레이어에서 다루는 편이 맞습니다.
+이런 문제는 별도의 유효성 검사 레이어에서 다루는 편이 맞습니다.
 
 ## 설치
 
@@ -108,7 +108,7 @@ struct UserProfile {
 }
 ```
 
-개념적으로는 다음과 비슷하게 동작합니다.
+개념적으로는 다음과 같이 동작합니다.
 
 ```swift
 struct UserProfile {
@@ -169,13 +169,13 @@ code = "ABCDEFGHIJK"
 
 ```swift
 public enum StringFilterWidth {
-    /// 문자 폭을 그대로 유지합니다.
+    /// 문자를 그대로 유지합니다.
     case preserve
 
-    /// 가능할 경우 전각 라틴 문자, 숫자, 기호를 반각으로 변환합니다.
+    /// 가능할 경우 전각 영문자, 숫자, 기호를 반각으로 변환합니다.
     case toHalfWidth
 
-    /// 가능할 경우 반각 라틴 문자, 숫자, 기호를 전각으로 변환합니다.
+    /// 가능할 경우 반각 영문자, 숫자, 기호를 전각으로 변환합니다.
     case toFullWidth
 }
 ```
@@ -214,9 +214,7 @@ public enum StringFilterLetterCase {
 ```swift
 @StringFilter(letterCase: .uppercased)
 var inviteCode: String = ""
-```
 
-```swift
 inviteCode = "ab12cd"
 // "AB12CD"
 ```
@@ -249,9 +247,7 @@ public enum StringFilterContent {
 ```swift
 @StringFilter(content: .decimalDigits)
 var otp: String = ""
-```
 
-```swift
 otp = "12a34"
 // "1234"
 ```
@@ -259,9 +255,7 @@ otp = "12a34"
 ```swift
 @StringFilter(content: .asciiLetters)
 var initials: String = ""
-```
 
-```swift
 initials = "A1b-"
 // "Ab"
 ```
@@ -269,9 +263,7 @@ initials = "A1b-"
 ```swift
 @StringFilter(content: .asciiAlphanumerics)
 var username: String = ""
-```
 
-```swift
 username = "ab-12_!"
 // "ab12"
 ```
@@ -279,9 +271,7 @@ username = "ab-12_!"
 ```swift
 @StringFilter(content: .custom(CharacterSet(charactersIn: "ABC123-_")))
 var token: String = ""
-```
 
-```swift
 token = "AZ-12_!"
 // "A-12_"
 ```
@@ -347,9 +337,7 @@ struct Account {
     )
     var username: String = ""
 }
-```
 
-```swift
 var account = Account()
 account.username = "ａｂ_cd-12!"
 // "ab_cd-12"
@@ -367,9 +355,7 @@ struct Invite {
     )
     var code: String = ""
 }
-```
 
-```swift
 var invite = Invite()
 invite.code = "ab12cd!!"
 // "AB12CD"
@@ -386,9 +372,7 @@ struct Verification {
     )
     var otp: String = ""
 }
-```
 
-```swift
 var verification = Verification()
 verification.otp = "１２3a45"
 // "12345"
@@ -404,9 +388,7 @@ struct Profile {
     )
     var nickname: String = ""
 }
-```
 
-```swift
 var profile = Profile()
 profile.nickname = "Jun\nHyeok"
 // "JunHyeok"
@@ -423,7 +405,7 @@ profile.nickname = "Jun\nHyeok"
 
 좋은 후보는 다음과 같습니다.
 
-- 문자 폭 정규화
+- 전각/반각 정규화
 - 대소문자 정규화
 - ID나 코드용 문자 필터링
 - 공백이나 줄바꿈 제거
@@ -433,7 +415,7 @@ profile.nickname = "Jun\nHyeok"
 
 - 비밀번호 정책 강제
 - 최소 길이 요구
-- 사용자에게 보여줄 형식 검증 에러
+- 사용자에게 보여줄 형식 오류 메시지
 - 변환보다 실패가 맞는 비즈니스 규칙
 
 ## 제약 사항
@@ -445,9 +427,9 @@ profile.nickname = "Jun\nHyeok"
 - `including`은 제한된 `content` 프리셋을 확장할 때만 사용합니다. 독립적인 allowlist에는 `content: .custom(...)`를 사용하세요
 - 문자 폭 변환은 사용 가능한 Foundation transform에 의존합니다
 
-## Validation 라이브러리와의 비교
+## 유효성 검사 라이브러리와의 비교
 
-Validation 라이브러리는 보통 다음에 답합니다.
+유효성 검사 라이브러리는 보통 다음에 답합니다.
 
 - 이 값이 유효한가?
 - 왜 실패했는가?

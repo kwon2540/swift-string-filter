@@ -46,13 +46,13 @@ struct SignUpState {
 
 このマクロは自動的に次のことを行います。
 
-- 元の値を保持する backing storage プロパティを生成します
-- 元の stored property を computed property に置き換えます
-- setter 内で代入値をフィルタリングし、正規化します
+- 元の値を保持する backing storage プロパティを生成します。
+- 元の stored property を computed property に置き換えます。
+- setter 内で代入値をフィルタリングし、正規化します。
 
 ## 設計目標
 
-このライブラリは、バリデーションではなく静かな変換に焦点を当てています。
+このライブラリは、値の正しさを判定することよりも、入力値をその場で整えて保存しやすい形にそろえることに向いています。
 
 次のような場合に向いています。
 
@@ -64,13 +64,13 @@ struct SignUpState {
 
 次のような場合には向いていません。
 
-- バリデーションエラーを表示したい
+- 入力エラーをユーザーに表示したい
 - 不正な入力を拒否したい
 - パスワードポリシーのような意味的ルールを強制したい
 - 最小長を要求したい
 - 送信可能かどうかの状態を区別したい
 
-こうした問題はバリデーション層で扱うべきです。
+こうした問題は、別の入力チェック層で扱うほうが適しています。
 
 ## インストール
 
@@ -108,7 +108,7 @@ struct UserProfile {
 }
 ```
 
-概念的には次のように振る舞います。
+概念的には次のように動きます。
 
 ```swift
 struct UserProfile {
@@ -169,13 +169,13 @@ code = "ABCDEFGHIJK"
 
 ```swift
 public enum StringFilterWidth {
-    /// 文字幅を変更しません。
+    /// 文字をそのまま保ちます。
     case preserve
 
-    /// 可能な場合、全角のラテン文字、数字、記号を半角へ変換します。
+    /// 可能な場合、全角の英字、数字、記号を半角へ変換します。
     case toHalfWidth
 
-    /// 可能な場合、半角のラテン文字、数字、記号を全角へ変換します。
+    /// 可能な場合、半角の英字、数字、記号を全角へ変換します。
     case toFullWidth
 }
 ```
@@ -214,9 +214,7 @@ public enum StringFilterLetterCase {
 ```swift
 @StringFilter(letterCase: .uppercased)
 var inviteCode: String = ""
-```
 
-```swift
 inviteCode = "ab12cd"
 // "AB12CD"
 ```
@@ -249,9 +247,7 @@ public enum StringFilterContent {
 ```swift
 @StringFilter(content: .decimalDigits)
 var otp: String = ""
-```
 
-```swift
 otp = "12a34"
 // "1234"
 ```
@@ -259,9 +255,7 @@ otp = "12a34"
 ```swift
 @StringFilter(content: .asciiLetters)
 var initials: String = ""
-```
 
-```swift
 initials = "A1b-"
 // "Ab"
 ```
@@ -269,9 +263,7 @@ initials = "A1b-"
 ```swift
 @StringFilter(content: .asciiAlphanumerics)
 var username: String = ""
-```
 
-```swift
 username = "ab-12_!"
 // "ab12"
 ```
@@ -279,9 +271,7 @@ username = "ab-12_!"
 ```swift
 @StringFilter(content: .custom(CharacterSet(charactersIn: "ABC123-_")))
 var token: String = ""
-```
 
-```swift
 token = "AZ-12_!"
 // "A-12_"
 ```
@@ -347,9 +337,7 @@ struct Account {
     )
     var username: String = ""
 }
-```
 
-```swift
 var account = Account()
 account.username = "ａｂ_cd-12!"
 // "ab_cd-12"
@@ -367,9 +355,7 @@ struct Invite {
     )
     var code: String = ""
 }
-```
 
-```swift
 var invite = Invite()
 invite.code = "ab12cd!!"
 // "AB12CD"
@@ -386,9 +372,7 @@ struct Verification {
     )
     var otp: String = ""
 }
-```
 
-```swift
 var verification = Verification()
 verification.otp = "１２3a45"
 // "12345"
@@ -404,9 +388,7 @@ struct Profile {
     )
     var nickname: String = ""
 }
-```
 
-```swift
 var profile = Profile()
 profile.nickname = "Jun\nHyeok"
 // "JunHyeok"
@@ -423,7 +405,7 @@ profile.nickname = "Jun\nHyeok"
 
 良い候補は次のとおりです。
 
-- 文字幅の正規化
+- 全角/半角の正規化
 - 大文字小文字の正規化
 - ID やコード向けの文字フィルタリング
 - 空白や改行の除去
@@ -433,7 +415,7 @@ profile.nickname = "Jun\nHyeok"
 
 - パスワードポリシーの強制
 - 最小長の要求
-- ユーザー向けの形式バリデーションエラー
+- ユーザー向けの形式エラー表示
 - 変換より失敗が正しいビジネスルール
 
 ## 制約事項
@@ -445,11 +427,11 @@ profile.nickname = "Jun\nHyeok"
 - `including` は制限された `content` preset を拡張する用途のみです。独立した allowlist には `content: .custom(...)` を使ってください
 - 文字幅変換は利用可能な Foundation transform に依存します
 
-## Validation ライブラリとの比較
+## 入力チェック系ライブラリとの比較
 
-Validation ライブラリは通常、次の問いに答えます。
+入力チェック系のライブラリは通常、次の問いに答えます。
 
-- この値は有効か
+- この値は妥当か
 - なぜ失敗したのか
 - どのエラーを表示すべきか
 
