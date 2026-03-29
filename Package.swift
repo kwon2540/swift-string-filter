@@ -4,7 +4,7 @@ import CompilerPluginSupport
 import PackageDescription
 
 let package = Package(
-    name: "StringFilter",
+    name: "swift-string-filter",
     platforms: [
         .macOS(.v13),
         .iOS(.v16),
